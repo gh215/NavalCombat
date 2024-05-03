@@ -5,25 +5,42 @@ int main()
     setlocale(LC_ALL, "Russian");
 
     Board human_board;
-    Board computer_board;
-    computer_board.is_human_board = false;
+    Board computer_board(false);
     AutoGamer autogamer_human(human_board);
     AutoGamer autogamer_computer(computer_board);
 
+    intro();
 
-    Ship ship(1, { {'A', 1} });
-    Ship ship1(4, { {'C', 5},  {'C', 6},  {'C', 7},  {'C', 8} });
-
-    human_board.put_ship(ship);
-    human_board.put_ship(ship1);
-
-    autogamer_computer.place_ships();
-    cell target = autogamer_computer.generate_shoot();
-
-    char result = human_board.shoot(target);
-
+    cout << "Разместите корабли: " << endl;
+    autogamer_human.place_ships_human();
     human_board.display_board();
+
+    autogamer_computer.place_ships_computer();
     computer_board.display_board();
 
-    cout << "\nРезультат выстрела: " << result << endl;
+    bool human_turn = true;
+    while (!human_board.all_ships_killed() && !computer_board.all_ships_killed())
+    {
+        if (human_turn)
+        {
+            cell target = autogamer_human.get_shot_coord();
+            char result = computer_board.shoot(target);
+            cout << "Выстрел по: " << target.first << target.second << " Результат: " << result << endl;
+            computer_board.display_board();
+        }
+        else
+        {
+            cell target = autogamer_computer.generate_shoot();
+            char result = human_board.shoot(target);
+            cout << "Компьютер выстрелил по: " << target.first << target.second << " Результат: " << result << endl;
+            human_board.display_board();
+        }
+        human_turn = false;
+    }
+
+    if (human_board.all_ships_killed())
+    {
+        cout << "Победил компьютер!" << endl;
+    }
+    cout << "Победил игрок!" << endl;
 }

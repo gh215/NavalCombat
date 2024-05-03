@@ -19,7 +19,8 @@ const int BSIZE = 10; // Определяется размер игрового поля (10x10 ячеек).
 //Определяется тип cell как пара символа (буква столбца) и целого числа (номер строки) для представления координат ячейки.
 typedef pair<char, int> cell;
 
-//
+void intro();
+
 class Ship
 {
 public:
@@ -31,8 +32,8 @@ public:
 	char hit(cell); //метод для попадания по кораблю
 	char cell_state(cell); //метод для определения состояния клетки корабля.
 	void killed_check();
-	Ship(int size, vector<cell> crd): //конструктор класса Ship
-		ship_size(size),
+	Ship(vector<cell> crd): //конструктор класса Ship
+		ship_size(crd.size()),
 		coord(crd)
 	{}
 };
@@ -42,8 +43,12 @@ class Board
 	vector<Ship> ships; //вектор кораблей на игровом поле
 	set<cell> shoots; //множество клеток, по которым было произведено попадание
 	bool expl = false; //флаг, указывающий, произошед ли взрыв
+	bool display_pipes = true;
 public:
-	bool is_human_board = true;
+	Board(bool is_human_board = true)
+	{
+		display_pipes = is_human_board;
+	}
 	static cell ij_to_cell(int i, int j) //статический метод для преобразования индексов в клетку
 	{
 		cell c{ 'A' + j, 1 + i };
@@ -55,6 +60,7 @@ public:
 		return true;
 	}
 	void display_board();
+	bool all_ships_killed();
 	char shoot(cell target);
 	char cell_state(cell);
 };
@@ -64,6 +70,9 @@ class AutoGamer
 public:
 	Board& board; 
 	AutoGamer(Board& board) : board(board) {} // Конструктор принимает ссылку на Board
-	void place_ships();
 	cell generate_shoot();
+	cell get_shot_coord();
+	void place_ships_computer();
+	void place_ships_human();
 };
+
