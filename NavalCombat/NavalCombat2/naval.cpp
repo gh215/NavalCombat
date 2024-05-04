@@ -163,8 +163,13 @@ cell AutoGamer::get_shot_coord()
 
 	while (true)
 	{
-		cout << "Введите координаты выстрела: ";
-		cin >> input;
+		cout << "Введите координаты выстрела (или 'q' для выхода): ";
+		getline(cin, input);
+
+		if (input == "q" || input == "Q")
+		{
+			exit(0);
+		}
 
 		if (input.size() == 2)
 		{
@@ -182,23 +187,26 @@ cell AutoGamer::get_shot_coord()
 
 void AutoGamer::place_ships_human()
 {
-	vector<int> ship_sizes = { 4, 3, 3, 2, 2, 2, 1, 1, 1, 1 };
-	int total_ships = 10;
+	vector<int> ship_sizes = { 1 };
+	int total_ships = 1;
 	int placed_ships = 0;
 
 	while (placed_ships < total_ships)
 	{
 		cout << "Введите координаты для размещения корабля размером " << ship_sizes[placed_ships] << " (например, A1 B1 C1): ";
 		string input;
-		cin >> input;
+		getline(cin, input);
 
 		vector<cell> ship_coords;
+		bool is_ship_pos_valid = true;
+		//переменная ship_size, равная текущему размеру корабля
 		int ship_size = ship_sizes[placed_ships];
 		//Для каждого корабля размера ship_sizes[placed_ships] выполняется цикл, в котором из ввода извлекаются координаты.
+		//Внутри цикла вычисляются позиции текущего и следующего символа в строке
 		for (int i = 0; i < ship_size; i++)
 		{
 			//Это выражение, которое вычисляет позицию следующего символа в строке input. 
-			//Мы умножаем индекс на 2, чтобы получить позицию следующего символа.
+			//Мы умножаем индекс на 2 и прибавляем 1, чтобы получить позицию следующего символа.
 			int next_symbol_pos = 2 * (i + 1);
 			int current_symbol_pos = 2 * i;
 			if (input.size() < next_symbol_pos)
@@ -207,18 +215,28 @@ void AutoGamer::place_ships_human()
 				break;
 			}
 
-			char column = tolower(input[current_symbol_pos]);
-			int row = input[next_symbol_pos] - '0';
+			char column = toupper(input[current_symbol_pos]);
+			// Смещение для извлечения номера строки из координаты
+			int row = input[current_symbol_pos + 1] - '0';
 
-			if (!((column >= 'a' && column <= 'j') && (row >= 1 && row <= 10)))
+			if (!((column >= 'A' && column <= 'J') && (row >= 1 && row <= 10)))
 			{
 				cout << "Неверный формат координат. Попробуйте еще раз." << endl;
+				break;
+			}
+
+			cell c = make_pair(column, row);
+			if (board.cell_state(c) != EMPTY)
+			{
+				cout << "Клетка " << column << row << " уже занята. Попробуйте еще раз." << endl;
+				is_ship_pos_valid = false;
 				break;
 			}
 			ship_coords.push_back(make_pair(column, row));
 		}
 
-		if (!ship_coords.empty())
+		//После выхода из внутреннего цикла проверяется, не пустой ли вектор ship_coords. 
+		if (is_ship_pos_valid && !ship_coords.empty())
 		{
 			Ship ship(ship_coords);
 			board.put_ship(ship);
