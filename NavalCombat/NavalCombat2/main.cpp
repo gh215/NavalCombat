@@ -9,13 +9,18 @@ int main()
     AutoGamer autogamer_human(human_board);
     AutoGamer autogamer_computer(computer_board);
 
+    cell first_shoot_hint = cell('D', 6);
+
     intro();
 
     cout << "Разместите корабли: " << endl;
-    autogamer_human.place_ships_human();
+    if (!autogamer_human.auto_place_ships(1))
+    {
+        exit(0);
+    }
     human_board.display_board();
 
-    autogamer_computer.place_ships_computer();
+    autogamer_computer.auto_place_ships(0);
     computer_board.display_board();
 
     bool human_turn = true;
@@ -24,18 +29,42 @@ int main()
         if (human_turn)
         {
             cell target = autogamer_human.get_shot_coord();
+
             char result = computer_board.shoot(target);
             cout << "Выстрел по: " << target.first << target.second << " Результат: " << result << endl;
             computer_board.display_board();
+            if (result == MISSED)
+            {
+                human_turn = false;
+            }
         }
         else
         {
             cell target = autogamer_computer.generate_shoot();
+
+            // temp code begin        
+            if (first_shoot_hint != INVALID_CELL)
+            {
+                target = first_shoot_hint;
+                first_shoot_hint = INVALID_CELL;
+            }
+            // temp code end
+
             char result = human_board.shoot(target);
+            autogamer_computer.delete_possible_shoots(target);
+            autogamer_computer.update_hunting_mode(result, target);
             cout << "Компьютер выстрелил по: " << target.first << target.second << " Результат: " << result << endl;
             human_board.display_board();
+            if (result == MISSED)
+            {
+                human_turn = true;
+            }
+            if (result == WOUNDED || result == KILLED)
+            {
+                autogamer_computer.update_impossible_shoots(target);
+                autogamer_computer.update_possible_shoots(target, autogamer_human);
+            }
         }
-        human_turn = false;
     }
 
     if (human_board.all_ships_killed())
