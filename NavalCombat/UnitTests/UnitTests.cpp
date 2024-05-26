@@ -126,5 +126,95 @@ namespace UnitTests
 
 			Assert::AreEqual(KILLED, result2);
 		}
+		TEST_METHOD(TestPrevShootResult)
+		{
+			Board board;
+			AutoGamer ag(board);
+
+			Ship ship1({ { 'A', 1} });
+			Ship ship2({ { 'C', 1}, {'C', 2} });
+
+			board.put_ship(ship1);
+			board.put_ship(ship2);
+
+			cell sh1 = { 'A', 1 };
+			cell sh2 = { 'C', 1 };
+			cell sh0 = { 'J', 1 };
+
+			board.shoot(sh1);
+			board.shoot(sh2);
+
+			char result0 = ag.prev_shoot_result(sh0);
+			char result1 = ag.prev_shoot_result(sh1);
+			char result2 = ag.prev_shoot_result(sh2);
+
+			Assert::AreEqual(KILLED, result1);
+			Assert::AreEqual(WOUNDED, result2);
+			Assert::AreEqual(UNKNOWN, result0);
+		}
+		TEST_METHOD(TestUpdateImpossibleShoots)
+		{
+			Board board;
+			AutoGamer ag(board);
+
+			cell hit = { 'B', 2 };
+
+			bool result = ag.update_impossible_shoots(hit);
+
+			Assert::IsTrue(result);
+		}
+		TEST_METHOD(TestUpdatePossibleShoots)
+		{
+			Board board;
+			AutoGamer ag(board);
+			AutoGamer enemy(board);
+
+			cell hit = { 'D', 4 };
+
+			bool result = ag.update_possible_shoots(hit, enemy);
+
+			Assert::IsTrue(result);
+		}
+		TEST_METHOD(TestStringToCell)
+		{
+			cell c;
+			bool result1 = string_to_cell("A1", c);
+			bool result2 = string_to_cell("Z9", c);
+
+			Assert::IsTrue(result1);
+			Assert::IsFalse(result2);
+		}
+		TEST_METHOD(TestIsCellValid)
+		{
+			cell validCell = { 'A', 1 };
+			cell invalidCell = { 'Z', 9 };
+
+			bool result1 = is_cell_valid(validCell);
+			bool result2 = is_cell_valid(invalidCell);
+
+			Assert::IsTrue(result1);
+			Assert::IsFalse(result2);
+		}
+		TEST_METHOD(TestIsCellsNear)
+		{
+			cell c1 = { 'A', 1 };
+			cell c2 = { 'A', 2 };
+			cell c3 = { 'C', 3 };
+
+			bool result1 = is_cells_near(c1, c2);
+			bool result2 = is_cells_near(c1, c3);
+
+			Assert::IsTrue(result1);
+			Assert::IsFalse(result2);
+		}
+		TEST_METHOD(TestCheckCoords)
+		{
+			Board board;
+			vector<cell> cells = { { 'A', 1 }, { 'A', 2 }, { 'A', 3 } };
+
+			bool result = check_coords(cells, board);
+
+			Assert::IsTrue(result);
+		}
 	};
 }

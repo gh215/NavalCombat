@@ -115,7 +115,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <AdditionalLibraryDirectories>$(VCInstallDir)UnitTest\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>..\NavalCombat2\x64\Debug\naval.obj;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>..\NavalCombat2\x64\Debug\autogamer.obj;..\NavalCombat2\x64\Debug\board.obj;..\NavalCombat2\x64\Debug\ship.obj;..\NavalCombat2\x64\Debug\utility.obj;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

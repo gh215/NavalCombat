@@ -1,4 +1,4 @@
-#pragma once
+п»ї#pragma once
 #include <iostream>
 #include <utility>
 #include <string>
@@ -7,19 +7,21 @@
 #include <algorithm>
 #include <set>
 #include <sstream>
+#include <ctime>    
+#include <cstdlib> 
 
 using namespace std;
 
-//Определяются символьные константы для отображения различных состояний ячеек на игровом поле.
+//РћРїСЂРµРґРµР»СЏСЋС‚СЃСЏ СЃРёРјРІРѕР»СЊРЅС‹Рµ РєРѕРЅСЃС‚Р°РЅС‚С‹ РґР»СЏ РѕС‚РѕР±СЂР°Р¶РµРЅРёСЏ СЂР°Р·Р»РёС‡РЅС‹С… СЃРѕСЃС‚РѕСЏРЅРёР№ СЏС‡РµРµРє РЅР° РёРіСЂРѕРІРѕРј РїРѕР»Рµ.
 const char EMPTY = '_';
 const char PIPE = 'O';
 const char MISSED = '.';
 const char WOUNDED = 'x';
 const char KILLED = 'X';
 const char UNKNOWN = '?';
-const int BSIZE = 10; // Определяется размер игрового поля (10x10 ячеек).
+const int BSIZE = 10; // РћРїСЂРµРґРµР»СЏРµС‚СЃСЏ СЂР°Р·РјРµСЂ РёРіСЂРѕРІРѕРіРѕ РїРѕР»СЏ (10x10 СЏС‡РµРµРє).
 
-//Определяется тип cell как пара символа (буква столбца) и целого числа (номер строки) для представления координат ячейки.
+//РћРїСЂРµРґРµР»СЏРµС‚СЃСЏ С‚РёРї cell РєР°Рє РїР°СЂР° СЃРёРјРІРѕР»Р° (Р±СѓРєРІР° СЃС‚РѕР»Р±С†Р°) Рё С†РµР»РѕРіРѕ С‡РёСЃР»Р° (РЅРѕРјРµСЂ СЃС‚СЂРѕРєРё) РґР»СЏ РїСЂРµРґСЃС‚Р°РІР»РµРЅРёСЏ РєРѕРѕСЂРґРёРЅР°С‚ СЏС‡РµР№РєРё.
 typedef pair<char, int> cell;
 
 const cell INVALID_CELL = cell{ 'X', 99 };
@@ -27,16 +29,16 @@ const cell INVALID_CELL = cell{ 'X', 99 };
 class Ship
 {
 public:
-	int ship_size; //размер корабля
-	vector<cell> coord; //координаты клеток, зан. кораблём
-	set<cell> hits; //множества клеток, по которым корабль был попадён
-	bool killed = false; //флаг, указывающий, убит ли корабль
-	bool has_cell(cell); //метод для проверки, содержит ли корабль указанную клетку
-	char hit(cell); //метод для попадания по кораблю
-	char cell_state(cell); //метод для определения состояния клетки корабля.
+	int ship_size; //СЂР°Р·РјРµСЂ РєРѕСЂР°Р±Р»СЏ
+	vector<cell> coord; //РєРѕРѕСЂРґРёРЅР°С‚С‹ РєР»РµС‚РѕРє, Р·Р°РЅ. РєРѕСЂР°Р±Р»С‘Рј
+	set<cell> hits; //РјРЅРѕР¶РµСЃС‚РІР° РєР»РµС‚РѕРє, РїРѕ РєРѕС‚РѕСЂС‹Рј РєРѕСЂР°Р±Р»СЊ Р±С‹Р» РїРѕРїР°РґС‘РЅ
+	bool killed = false; //С„Р»Р°Рі, СѓРєР°Р·С‹РІР°СЋС‰РёР№, СѓР±РёС‚ Р»Рё РєРѕСЂР°Р±Р»СЊ
+	bool has_cell(cell); //РјРµС‚РѕРґ РґР»СЏ РїСЂРѕРІРµСЂРєРё, СЃРѕРґРµСЂР¶РёС‚ Р»Рё РєРѕСЂР°Р±Р»СЊ СѓРєР°Р·Р°РЅРЅСѓСЋ РєР»РµС‚РєСѓ
+	char hit(cell); //РјРµС‚РѕРґ РґР»СЏ РїРѕРїР°РґР°РЅРёСЏ РїРѕ РєРѕСЂР°Р±Р»СЋ
+	char cell_state(cell); //РјРµС‚РѕРґ РґР»СЏ РѕРїСЂРµРґРµР»РµРЅРёСЏ СЃРѕСЃС‚РѕСЏРЅРёСЏ РєР»РµС‚РєРё РєРѕСЂР°Р±Р»СЏ.
 	void killed_check();
 	bool near(cell c);
-	Ship(vector<cell> crd): //конструктор класса Ship
+	Ship(vector<cell> crd): //РєРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РєР»Р°СЃСЃР° Ship
 		ship_size(crd.size()),
 		coord(crd)
 	{}
@@ -44,21 +46,30 @@ public:
 
 class Board
 {
-	vector<Ship> ships; //вектор кораблей на игровом поле
-	set<cell> shoots; //множество клеток, по которым было произведено попадание
-	bool expl = false; //флаг, указывающий, произошед ли взрыв
+	vector<Ship> ships; //РІРµРєС‚РѕСЂ РєРѕСЂР°Р±Р»РµР№ РЅР° РёРіСЂРѕРІРѕРј РїРѕР»Рµ
+	set<cell> shoots; //РјРЅРѕР¶РµСЃС‚РІРѕ РєР»РµС‚РѕРє, РїРѕ РєРѕС‚РѕСЂС‹Рј Р±С‹Р»Рѕ РїСЂРѕРёР·РІРµРґРµРЅРѕ РїРѕРїР°РґР°РЅРёРµ
+	bool expl = false; //С„Р»Р°Рі, СѓРєР°Р·С‹РІР°СЋС‰РёР№, РїСЂРѕРёР·РѕС€РµРґ Р»Рё РІР·СЂС‹РІ
 	bool display_pipes = true;
+	string title;
 public:
 	Board(bool is_human_board = true)
 	{
 		display_pipes = is_human_board;
+		if (is_human_board)
+		{
+			title = "Human's board";
+		}
+		else
+		{
+			title = "Computer's board";
+		}
 	}
-	static cell ij_to_cell(int i, int j) //статический метод для преобразования индексов в клетку
+	static cell ij_to_cell(int i, int j) //СЃС‚Р°С‚РёС‡РµСЃРєРёР№ РјРµС‚РѕРґ РґР»СЏ РїСЂРµРѕР±СЂР°Р·РѕРІР°РЅРёСЏ РёРЅРґРµРєСЃРѕРІ РІ РєР»РµС‚РєСѓ
 	{
 		cell c{ 'A' + j, 1 + i };
 		return c;
 	}
-	bool put_ship(Ship ship) //метод для добавления корабля на игровое поле
+	bool put_ship(Ship ship) //РјРµС‚РѕРґ РґР»СЏ РґРѕР±Р°РІР»РµРЅРёСЏ РєРѕСЂР°Р±Р»СЏ РЅР° РёРіСЂРѕРІРѕРµ РїРѕР»Рµ
 	{
 		ships.push_back(ship);
 		return true;
@@ -96,6 +107,7 @@ public:
 
 bool string_to_cell(string in, cell& c);
 void intro();
+void pause();
 bool is_cell_valid(cell c);
 bool get_coords(vector<cell>& cells, int size);
 bool is_cells_near(cell c1, cell c2);

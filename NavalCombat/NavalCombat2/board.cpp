@@ -2,6 +2,7 @@
 
 void Board::display_board()
 {
+	cout << endl << title << endl;
 	cout << "   A B C D E F G H I J" << endl;
 	for (int i = 0; i < BSIZE; i++)
 	{

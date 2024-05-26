@@ -1,4 +1,4 @@
-#include "naval.h"
+п»ї#include "naval.h"
 
 
 cell AutoGamer::generate_shoot()
@@ -12,13 +12,13 @@ cell AutoGamer::generate_shoot()
 	return board.ij_to_cell(i, j);
 }
 
-//функция обновляет статус режима охоты в зависимости от результата последнего выстрела 
+//С„СѓРЅРєС†РёСЏ РѕР±РЅРѕРІР»СЏРµС‚ СЃС‚Р°С‚СѓСЃ СЂРµР¶РёРјР° РѕС…РѕС‚С‹ РІ Р·Р°РІРёСЃРёРјРѕСЃС‚Рё РѕС‚ СЂРµР·СѓР»СЊС‚Р°С‚Р° РїРѕСЃР»РµРґРЅРµРіРѕ РІС‹СЃС‚СЂРµР»Р° 
 void AutoGamer::update_hunting_mode(char shot_result, cell target)
 {
 	if (shot_result == WOUNDED)
 	{
 		hunting_mode = true;
-		//last_hit обновляется на координаты последнего попадания
+		//last_hit РѕР±РЅРѕРІР»СЏРµС‚СЃСЏ РЅР° РєРѕРѕСЂРґРёРЅР°С‚С‹ РїРѕСЃР»РµРґРЅРµРіРѕ РїРѕРїР°РґР°РЅРёСЏ
 		last_hit = target;
 	}
 	else if (shot_result == KILLED)
@@ -32,7 +32,7 @@ cell AutoGamer::get_shot_coord()
 	string input;
 	while (true)
 	{
-		cout << "Введите координаты выстрела (или 'q' для выхода): ";
+		cout << "Р’РІРµРґРёС‚Рµ РєРѕРѕСЂРґРёРЅР°С‚С‹ РІС‹СЃС‚СЂРµР»Р° (РёР»Рё 'q' РґР»СЏ РІС‹С…РѕРґР°): ";		
 		getline(cin, input);
 
 		if (input == "q" || input == "Q")
@@ -88,7 +88,7 @@ bool AutoGamer::auto_place_ships(int variant)
 		ship_positions = ship_positions1;
 		break;
 	default:
-		cout << "Недопустимый номер варианта ship posiions" << endl;
+		cout << "РќРµРґРѕРїСѓСЃС‚РёРјС‹Р№ РЅРѕРјРµСЂ РІР°СЂРёР°РЅС‚Р° ship posiions" << endl;
 		return false;
 	}
 
@@ -106,16 +106,16 @@ bool AutoGamer::manual_place_ships()
 	for (int i = 0; i < ships_sizes.size(); i++)
 	{
 		vector<cell> cells;
-		//Принимает ввод пользователя, пытается преобразовать его в вектор cell
+		//РџСЂРёРЅРёРјР°РµС‚ РІРІРѕРґ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ, РїС‹С‚Р°РµС‚СЃСЏ РїСЂРµРѕР±СЂР°Р·РѕРІР°С‚СЊ РµРіРѕ РІ РІРµРєС‚РѕСЂ cell
 		if (!get_coords(cells, ships_sizes[i]))
 		{
 			return false;
 		}
 
-		//Проверяет возможность размещения корабля в board
+		//РџСЂРѕРІРµСЂСЏРµС‚ РІРѕР·РјРѕР¶РЅРѕСЃС‚СЊ СЂР°Р·РјРµС‰РµРЅРёСЏ РєРѕСЂР°Р±Р»СЏ РІ board
 		if (!check_coords(cells, board))
 		{
-			cout << "Не удалось разместить корабль. Попробуйте еще раз." << endl;
+			cout << "РќРµ СѓРґР°Р»РѕСЃСЊ СЂР°Р·РјРµСЃС‚РёС‚СЊ РєРѕСЂР°Р±Р»СЊ. РџРѕРїСЂРѕР±СѓР№С‚Рµ РµС‰Рµ СЂР°Р·." << endl;
 			return false;
 		}
 		board.put_ship(Ship(cells));
