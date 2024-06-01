@@ -156,12 +156,25 @@ namespace UnitTests
 		{
 			Board board;
 			AutoGamer ag(board);
+			vector<cell> cells = { {'A', 1}, {'A', 2} };
+			Ship ship(cells);
+			board.put_ship(ship);
 
-			cell hit = { 'B', 2 };
+			// Стреляем в одну из палуб
+			cell hit = { 'A', 1 };
+			board.shoot(hit);
 
-			bool result = ag.update_impossible_shoots(hit);
+			// Обновляем невозможные выстрелы
+			ag.update_impossible_shoots(hit);
 
-			Assert::IsTrue(result);
+			// Проверяем, что генерация выстрелов не возвращает подбитую клетку и диагональные клетки
+			cell shoot = ag.generate_shoot();
+			Assert::IsTrue(shoot != hit && shoot != cell{ 'B', 2 } && shoot != cell{ 'B', 0 });
+
+			// Добавляем диагональную клетку в невозможные выстрелы и проверяем снова
+			ag.update_impossible_shoots(cell{ 'B', 2 });
+			shoot = ag.generate_shoot();
+			Assert::IsTrue(shoot != hit && shoot != cell{ 'B', 2 });
 		}
 		TEST_METHOD(TestUpdatePossibleShoots)
 		{
@@ -169,31 +182,54 @@ namespace UnitTests
 			AutoGamer ag(board);
 			AutoGamer enemy(board);
 
+			// Размещаем корабль на доске
+			vector<cell> shipCells = { {'D', 4}, {'D', 5} };
+			Ship ship(shipCells);
+			board.put_ship(ship);
+
+			// Стреляем по кораблю
 			cell hit = { 'D', 4 };
+			board.shoot(hit);
+			ag.update_possible_shoots(hit, enemy);
 
-			bool result = ag.update_possible_shoots(hit, enemy);
+			// Проверяем, что возможные выстрелы не содержат уже подбитую клетку
+			cell shoot = ag.generate_shoot();
+			Assert::IsTrue(shoot != hit);
 
-			Assert::IsTrue(result);
+			// Проверяем взаимодействие с update_impossible_shoots
+			ag.update_impossible_shoots(cell{ 'D', 5 });
+			shoot = ag.generate_shoot();
+			Assert::IsTrue(shoot != hit && shoot != cell{ 'D', 5 });
 		}
 		TEST_METHOD(TestStringToCell)
 		{
 			cell c;
 			bool result1 = string_to_cell("A1", c);
 			bool result2 = string_to_cell("Z9", c);
+			bool result3 = string_to_cell("a1", c); 
+			bool result4 = string_to_cell("C10", c); 
+			bool result5 = string_to_cell("c11", c); 
 
 			Assert::IsTrue(result1);
 			Assert::IsFalse(result2);
+			Assert::IsTrue(result3);
+			Assert::IsTrue(result4);
+			Assert::IsFalse(result5);
 		}
 		TEST_METHOD(TestIsCellValid)
 		{
-			cell validCell = { 'A', 1 };
-			cell invalidCell = { 'Z', 9 };
+			vector<cell> validCells = { {'A', 1}, {'J', 10} };
+			vector<cell> invalidCells = { {'Z', 9}, {'_', 2}, {'a', 1}, {'a', 0}, {0, 'a'} };
 
-			bool result1 = is_cell_valid(validCell);
-			bool result2 = is_cell_valid(invalidCell);
+			for (auto cell : validCells) 
+			{
+				Assert::IsTrue(is_cell_valid(cell));
+			}
 
-			Assert::IsTrue(result1);
-			Assert::IsFalse(result2);
+			for (auto cell : invalidCells) 
+			{
+				Assert::IsFalse(is_cell_valid(cell));
+			}
 		}
 		TEST_METHOD(TestIsCellsNear)
 		{
@@ -210,11 +246,20 @@ namespace UnitTests
 		TEST_METHOD(TestCheckCoords)
 		{
 			Board board;
-			vector<cell> cells = { { 'A', 1 }, { 'A', 2 }, { 'A', 3 } };
+			// Создаем и размещаем корабль на доске
+			vector<cell> initialShipCells = { {'B', 1}, {'B', 2}, {'B', 3} };
+			Ship initialShip(initialShipCells);
+			board.put_ship(initialShip);
 
-			bool result = check_coords(cells, board);
+			vector<cell> validCells = { {'A', 1}, {'A', 2}, {'A', 3} };
+			vector<cell> invalidCells = { {'A', 1}, {'A', 2}, {'A', 2} }; // Повторяющаяся клетка
 
-			Assert::IsTrue(result);
+			// Проверка корректных координат
+			bool validResult = check_coords(validCells, board);
+			Assert::IsTrue(validResult);
+
+			// Проверка некорректных координат
+			bool invalidResult = check_coords(invalidCells, board);
 		}
 	};
 }

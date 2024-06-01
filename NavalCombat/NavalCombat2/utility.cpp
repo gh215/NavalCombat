@@ -39,7 +39,7 @@ bool string_to_cell(string in, cell& c)
 bool get_coords(vector<cell>& cells, int size)
 {
 	string input;
-	cout << "Введите координаты корабля размера: " << size << "(например, A1 B1 C1)" << endl;
+	cout << "Введите координаты корабля размера: " << size << "(например, A1 B1 C1): ";
 	getline(cin, input);
 	istringstream str(input);
 	string word;

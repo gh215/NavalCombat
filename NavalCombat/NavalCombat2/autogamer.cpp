@@ -7,9 +7,19 @@ cell AutoGamer::generate_shoot()
 	{
 		return *possible_shoots.begin();
 	}
-	int i = rand() % BSIZE;
-	int j = rand() % BSIZE;
-	return board.ij_to_cell(i, j);
+
+	while (true) // Добавляем цикл, чтобы гарантировать выбор допустимой клетки
+	{
+		int i = rand() % BSIZE;
+		int j = rand() % BSIZE;
+		cell c = board.ij_to_cell(i, j);
+
+		// Проверяем, не стреляли ли уже по этой клетке и не содержится ли она в impossible_shoots
+		if (board.cell_state(c) == EMPTY && impossible_shoots.find(c) == impossible_shoots.end())
+		{
+			return c;
+		}
+	}
 }
 
 //функция обновляет статус режима охоты в зависимости от результата последнего выстрела 
@@ -32,7 +42,7 @@ cell AutoGamer::get_shot_coord()
 	string input;
 	while (true)
 	{
-		cout << "Введите координаты выстрела (или 'q' для выхода): ";		
+		cout << "Введите координаты выстрела (или 'q' для выхода): ";
 		getline(cin, input);
 
 		if (input == "q" || input == "Q")
@@ -102,7 +112,7 @@ bool AutoGamer::auto_place_ships(int variant)
 
 bool AutoGamer::manual_place_ships()
 {
-	vector<int> ships_sizes{ 4, 4, 4, 4, 2, 1 };
+	vector<int> ships_sizes{ 4, 3, 3, 2, 2, 2, 1, 1, 1, 1 };
 	for (int i = 0; i < ships_sizes.size(); i++)
 	{
 		vector<cell> cells;
@@ -119,6 +129,30 @@ bool AutoGamer::manual_place_ships()
 			return false;
 		}
 		board.put_ship(Ship(cells));
+	}
+	return true;
+}
+
+bool AutoGamer::manual_choose_ship_positions()
+{
+	vector<vector<cell>> ship_positions;
+	vector<int> ships_sizes{ 4, 3, 3, 2, 2, 2, 1, 1, 1, 1 };
+
+	for (int size : ships_sizes)
+	{
+		while (true)
+		{
+			vector<cell> cells;
+			if (get_coords(cells, size) && check_coords(cells, board))
+			{
+				board.put_ship(Ship(cells));
+				break;
+			}
+			else
+			{
+				cout << "Неправильные координаты, попробуйте снова." << endl;
+			}
+		}
 	}
 	return true;
 }
@@ -147,7 +181,7 @@ bool AutoGamer::update_impossible_shoots(cell hit)
 		if (!is_cell_valid(imp)) continue;
 		impossible_shoots.insert(imp);
 	}
-	return true;	
+	return true;
 }
 
 bool AutoGamer::update_possible_shoots(cell hit, AutoGamer& enemy)
@@ -170,5 +204,57 @@ bool AutoGamer::update_possible_shoots(cell hit, AutoGamer& enemy)
 
 void AutoGamer::delete_possible_shoots(cell c)
 {
-	possible_shoots.erase(c);
+	//possible_shoots.erase(c);
+	impossible_shoots.insert(c);
+}
+
+bool AutoGamer::auto_place_ships_random()
+{
+	srand(static_cast<unsigned int>(time(0)));
+	vector<int> ships_sizes{ 4, 3, 3, 2, 2, 2, 1, 1, 1, 1 };
+
+	//цикл будет выполнятся, пока корабль не будет успешно размещен на поле и все корабли не будут размещены на поле
+	for (int size : ships_sizes)
+	{
+		bool placed = false;
+
+		while (!placed)
+		{
+			//случайное направление корабля
+			bool horizontal = rand() % 2; // 0 - горизонтально, 1 - вертикально
+			//генерация начальных коорд. с учётом границ поля
+			/*
+			Если корабль располагается горизонтально (horizontal == true), то row генерируется в диапазоне от 1 до BSIZE,
+			а col — в диапазоне от 'A' до 'A' + BSIZE - size.
+			*/
+			int row = horizontal ? rand() % BSIZE + 1 : rand() % (BSIZE - size + 1) + 1;
+			/*
+			Если корабль располагается вертикально (horizontal == false), 
+			то row генерируется в диапазоне от 1 до BSIZE - size + 1, а col — в диапазоне от 'A' до 'A' + BSIZE.
+			*/
+			int col = horizontal ? rand() % (BSIZE - size + 1) + 'A' : rand() % BSIZE + 'A';
+			//пустой вектор для хранение ячеек корабля
+			vector<cell> cells;
+
+			//цикл, заполняет вектор cells координатами ячеек корабля в зависимости от его напр. и размера
+			for (int i = 0; i < size; ++i)
+			{
+				if (horizontal)
+				{
+					cells.push_back(cell{ static_cast<char>(col + i), row });
+				}
+				else {
+					cells.push_back(cell{ col, row + i });
+				}
+			}
+
+			// проверка на возможность размещения корабля в данных координатах
+			if (check_coords(cells, board))
+			{
+				board.put_ship(Ship(cells));
+				placed = true;
+			}
+		}
+	}
+	return true;
 }

@@ -103,6 +103,8 @@ public:
 	cell get_shot_coord();
 	bool auto_place_ships(int variant = 0);
 	bool manual_place_ships();
+	bool auto_place_ships_random();
+	bool manual_choose_ship_positions();
 };
 
 bool string_to_cell(string in, cell& c);
