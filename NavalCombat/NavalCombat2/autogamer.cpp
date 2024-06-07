@@ -1,30 +1,32 @@
 ﻿#include "naval.h"
 
 
-cell AutoGamer::generate_shoot()
+cell AutoGamer::generate_shoot(AutoGamer& human_gamer)
 {
 	if (hunting_mode && possible_shoots.size() != 0)
 	{
 		return *possible_shoots.begin();
 	}
 
-	while (true) // Добавляем цикл, чтобы гарантировать выбор допустимой клетки
-	{
-		int i = rand() % BSIZE;
-		int j = rand() % BSIZE;
-		cell c = board.ij_to_cell(i, j);
+	set<cell> shot;
 
-		// Проверяем, не стреляли ли уже по этой клетке и не содержится ли она в impossible_shoots
-		if (board.cell_state(c) == EMPTY && impossible_shoots.find(c) == impossible_shoots.end())
-		{
-			return c;
-		}
+	while (shot.size() != BSIZE * BSIZE)
+	{	
+		cell c = get_random_cell();
+		shot.insert(c);
+
+		if (impossible_shoots.count(c) == 1) continue;
+		// туда куда не стрелял и для какой клетки не выяснил невозможность
+		
+		if (human_gamer.prev_shoot_result(c) != UNKNOWN) continue;
+		return c;		
 	}
 }
 
 //функция обновляет статус режима охоты в зависимости от результата последнего выстрела 
 void AutoGamer::update_hunting_mode(char shot_result, cell target)
 {
+	// изменить все poss на imposs shoots и добавить impossible shoots вокруг убившей клетки
 	if (shot_result == WOUNDED)
 	{
 		hunting_mode = true;
@@ -34,6 +36,23 @@ void AutoGamer::update_hunting_mode(char shot_result, cell target)
 	else if (shot_result == KILLED)
 	{
 		hunting_mode = false;
+
+		/**/// Переносим все возможные выстрелы в невозможные
+		for (auto pos : possible_shoots)
+		{
+			impossible_shoots.insert(pos);
+		}
+		possible_shoots.clear();
+
+		vector<pair<int, int>> offsets = { {-1, -1}, {1, -1}, {-1, 1}, {1, 1}, {-1, 0}, {1, 0}, {0, -1}, {0, 1} };
+		for (auto offset : offsets)
+		{
+			/*if (is_cell_valid(around_target))
+			{
+				impossible_shoots.insert(around_target);
+			}
+			*/
+		}
 	}
 }
 
@@ -110,29 +129,6 @@ bool AutoGamer::auto_place_ships(int variant)
 	return true;
 }
 
-bool AutoGamer::manual_place_ships()
-{
-	vector<int> ships_sizes{ 4, 3, 3, 2, 2, 2, 1, 1, 1, 1 };
-	for (int i = 0; i < ships_sizes.size(); i++)
-	{
-		vector<cell> cells;
-		//Принимает ввод пользователя, пытается преобразовать его в вектор cell
-		if (!get_coords(cells, ships_sizes[i]))
-		{
-			return false;
-		}
-
-		//Проверяет возможность размещения корабля в board
-		if (!check_coords(cells, board))
-		{
-			cout << "Не удалось разместить корабль. Попробуйте еще раз." << endl;
-			return false;
-		}
-		board.put_ship(Ship(cells));
-	}
-	return true;
-}
-
 bool AutoGamer::manual_choose_ship_positions()
 {
 	vector<vector<cell>> ship_positions;
@@ -143,7 +139,8 @@ bool AutoGamer::manual_choose_ship_positions()
 		while (true)
 		{
 			vector<cell> cells;
-			if (get_coords(cells, size) && check_coords(cells, board))
+			cout << "Введите координаты корабля размера " << size << " (например, A1 B1 C1): ";
+			if (get_coords(cells, size) && board.check_coords(cells))
 			{
 				board.put_ship(Ship(cells));
 				break;
@@ -159,13 +156,7 @@ bool AutoGamer::manual_choose_ship_positions()
 
 char AutoGamer::prev_shoot_result(cell c)
 {
-	char res = board.cell_state(c);
-
-	if (res == MISSED || res == WOUNDED || res == KILLED)
-	{
-		return res;
-	}
-	return UNKNOWN;
+	return board.shoot_result(c);
 }
 
 bool AutoGamer::update_impossible_shoots(cell hit)
@@ -180,6 +171,7 @@ bool AutoGamer::update_impossible_shoots(cell hit)
 		imp.second += offset.second;
 		if (!is_cell_valid(imp)) continue;
 		impossible_shoots.insert(imp);
+		delete_possible_shoots(imp);
 	}
 	return true;
 }
@@ -204,8 +196,7 @@ bool AutoGamer::update_possible_shoots(cell hit, AutoGamer& enemy)
 
 void AutoGamer::delete_possible_shoots(cell c)
 {
-	//possible_shoots.erase(c);
-	impossible_shoots.insert(c);
+	possible_shoots.erase(c);
 }
 
 bool AutoGamer::auto_place_ships_random()
@@ -218,20 +209,18 @@ bool AutoGamer::auto_place_ships_random()
 	{
 		bool placed = false;
 
+		//for (int tries = 0; tries < MAX_TRIES; tries++)
+		// когда корабль поставлен, break
 		while (!placed)
 		{
+			//сгенерировать направление, 
+			//сгенерировать head, 
+			//сгенерировать проект, 
+			// проверить в check_coords
 			//случайное направление корабля
 			bool horizontal = rand() % 2; // 0 - горизонтально, 1 - вертикально
-			//генерация начальных коорд. с учётом границ поля
-			/*
-			Если корабль располагается горизонтально (horizontal == true), то row генерируется в диапазоне от 1 до BSIZE,
-			а col — в диапазоне от 'A' до 'A' + BSIZE - size.
-			*/
+			//переделать код, так как непонятный
 			int row = horizontal ? rand() % BSIZE + 1 : rand() % (BSIZE - size + 1) + 1;
-			/*
-			Если корабль располагается вертикально (horizontal == false), 
-			то row генерируется в диапазоне от 1 до BSIZE - size + 1, а col — в диапазоне от 'A' до 'A' + BSIZE.
-			*/
 			int col = horizontal ? rand() % (BSIZE - size + 1) + 'A' : rand() % BSIZE + 'A';
 			//пустой вектор для хранение ячеек корабля
 			vector<cell> cells;
@@ -249,12 +238,72 @@ bool AutoGamer::auto_place_ships_random()
 			}
 
 			// проверка на возможность размещения корабля в данных координатах
-			if (check_coords(cells, board))
+			if (board.check_coords(cells))
 			{
 				board.put_ship(Ship(cells));
 				placed = true;
 			}
 		}
 	}
+	//когда функция возвращает true
 	return true;
+}
+
+void AutoGamer::place_ships()
+{
+	cout << "Выберите способ расстановки кораблей:" << endl;
+	cout << "1. Автоматическая расстановка" << endl;
+	cout << "2. Вручную" << endl;
+
+	int choice;
+	cout << "Ваш выбор: ";
+	cin >> choice;
+
+	cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+	switch (choice)
+	{
+	case 1:
+		auto_place_ships_random();
+		break;
+	case 2:
+		if (!manual_choose_ship_positions())
+		{
+			exit(0);
+		}
+		break;
+	default:
+		cout << "Неверный выбор, попробуйте снова." << endl;
+		return;
+	}
+}
+
+void AutoGamer::imp_poss_draw()
+{
+	for (int i = 0; i < BSIZE; i++)
+	{		
+		cout << "   ";
+		for (int j = 0; j < BSIZE; j++)
+		{
+			char disp = '.';
+			cell c = Board::ij_to_cell(i, j);
+			if (possible_shoots.count(c)) disp = POSS;
+			if (impossible_shoots.count(c)) disp = IMPOSS;
+			if (possible_shoots.count(c) && impossible_shoots.count(c)) disp = '!';
+			cout << disp << " ";
+		}
+		cout << endl;
+	}
+}
+
+void AutoGamer::invalidate_poss()
+{
+	for (cell c : possible_shoots)
+	{
+		impossible_shoots.insert(c);
+	}
+	for (cell c : impossible_shoots)
+	{
+		possible_shoots.erase(c);
+	}
 }

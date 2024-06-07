@@ -72,16 +72,12 @@ namespace UnitTests
 			Assert::AreEqual(board.shoot({ 'A', 1 }), WOUNDED);
 			Assert::AreEqual(board.shoot({ 'B', 1 }), MISSED);
 		}
-		TEST_METHOD(TestBoard_cellstate)
+		TEST_METHOD(TestBoard_shoot_result)
 		{
 			Board board;
 			cell emptyCell = { 'A', 1 };
-			cell missedCell = { 'B', 1 };
 
-			Assert::AreEqual(board.cell_state(emptyCell), EMPTY);
-
-			board.shoot(missedCell);
-			Assert::AreEqual(board.cell_state(missedCell), MISSED);
+			Assert::AreEqual(board.shoot_result(emptyCell), UNKNOWN);
 		}
 		TEST_METHOD(TestBoard_putship)
 		{
@@ -155,7 +151,9 @@ namespace UnitTests
 		TEST_METHOD(TestUpdateImpossibleShoots)
 		{
 			Board board;
+			Board target_board;
 			AutoGamer ag(board);
+			AutoGamer target(target_board);
 			vector<cell> cells = { {'A', 1}, {'A', 2} };
 			Ship ship(cells);
 			board.put_ship(ship);
@@ -168,17 +166,19 @@ namespace UnitTests
 			ag.update_impossible_shoots(hit);
 
 			// Проверяем, что генерация выстрелов не возвращает подбитую клетку и диагональные клетки
-			cell shoot = ag.generate_shoot();
+			cell shoot = ag.generate_shoot(target);
 			Assert::IsTrue(shoot != hit && shoot != cell{ 'B', 2 } && shoot != cell{ 'B', 0 });
 
 			// Добавляем диагональную клетку в невозможные выстрелы и проверяем снова
 			ag.update_impossible_shoots(cell{ 'B', 2 });
-			shoot = ag.generate_shoot();
+			shoot = ag.generate_shoot(target);
 			Assert::IsTrue(shoot != hit && shoot != cell{ 'B', 2 });
 		}
 		TEST_METHOD(TestUpdatePossibleShoots)
 		{
 			Board board;
+			Board target_board;
+			AutoGamer target(target_board);
 			AutoGamer ag(board);
 			AutoGamer enemy(board);
 
@@ -193,12 +193,12 @@ namespace UnitTests
 			ag.update_possible_shoots(hit, enemy);
 
 			// Проверяем, что возможные выстрелы не содержат уже подбитую клетку
-			cell shoot = ag.generate_shoot();
+			cell shoot = ag.generate_shoot(target);
 			Assert::IsTrue(shoot != hit);
 
 			// Проверяем взаимодействие с update_impossible_shoots
 			ag.update_impossible_shoots(cell{ 'D', 5 });
-			shoot = ag.generate_shoot();
+			shoot = ag.generate_shoot(target);
 			Assert::IsTrue(shoot != hit && shoot != cell{ 'D', 5 });
 		}
 		TEST_METHOD(TestStringToCell)
@@ -255,11 +255,11 @@ namespace UnitTests
 			vector<cell> invalidCells = { {'A', 1}, {'A', 2}, {'A', 2} }; // Повторяющаяся клетка
 
 			// Проверка корректных координат
-			bool validResult = check_coords(validCells, board);
+			bool validResult = board.check_coords(validCells);
 			Assert::IsTrue(validResult);
 
 			// Проверка некорректных координат
-			bool invalidResult = check_coords(invalidCells, board);
+			bool invalidResult = board.check_coords(invalidCells);
 		}
 	};
 }

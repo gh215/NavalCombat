@@ -19,6 +19,9 @@ const char MISSED = '.';
 const char WOUNDED = 'x';
 const char KILLED = 'X';
 const char UNKNOWN = '?';
+const char IMPOSS = '-';
+const char POSS = '+';
+enum Direction {HORIS, VERT};
 const int BSIZE = 10; // Определяется размер игрового поля (10x10 ячеек).
 
 //Определяется тип cell как пара символа (буква столбца) и целого числа (номер строки) для представления координат ячейки.
@@ -47,9 +50,10 @@ public:
 class Board
 {
 	vector<Ship> ships; //вектор кораблей на игровом поле
-	set<cell> shoots; //множество клеток, по которым было произведено попадание
+	set<cell> shoots; //множество клеток, по которым было произведены выстрелы
 	bool expl = false; //флаг, указывающий, произошед ли взрыв
 	bool display_pipes = true;
+	char cell_state(cell);
 	string title;
 public:
 	Board(bool is_human_board = true)
@@ -76,9 +80,10 @@ public:
 	}
 	bool ship_nearby(cell c);
 	void display_board();
+	char shoot_result(cell c);
+	bool check_coords(vector<cell>& cells);
 	bool all_ships_killed();
 	char shoot(cell target);
-	char cell_state(cell);
 };
 
 class AutoGamer
@@ -99,12 +104,14 @@ public:
 	bool hunting_mode = false;
 	cell last_hit;
 	void update_hunting_mode(char shot_result, cell target);
-	cell generate_shoot();
+	cell generate_shoot(AutoGamer& human_gamer);
 	cell get_shot_coord();
 	bool auto_place_ships(int variant = 0);
-	bool manual_place_ships();
 	bool auto_place_ships_random();
 	bool manual_choose_ship_positions();
+	void place_ships();
+	void imp_poss_draw();
+	void invalidate_poss();
 };
 
 bool string_to_cell(string in, cell& c);
@@ -113,4 +120,4 @@ void pause();
 bool is_cell_valid(cell c);
 bool get_coords(vector<cell>& cells, int size);
 bool is_cells_near(cell c1, cell c2);
-bool check_coords(vector<cell>& cells, Board& board);
+cell get_random_cell();

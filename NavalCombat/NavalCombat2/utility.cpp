@@ -73,24 +73,18 @@ bool is_cells_near(cell c1, cell c2)
 	return true;
 }
 
-bool check_coords(vector<cell>& cells, Board& board)
+cell get_random_cell()
 {
-	// Проверяем, что координаты не пересекаются с уже размещенными кораблями
-	for (auto c : cells)
-	{
-		if (board.cell_state(c) != EMPTY)
-		{
-			cout << "Координаты пересекаются с уже размещенным кораблем." << endl;
-			return false;
-		}
-		if (board.ship_nearby(c))
-		{
-			cout << "Корабль не может быть размещён рядом с другим кораблём." << endl;
-			return false;
-		}
-	}
-	return true;
+	Board board;
+	int i = rand() % BSIZE;
+	int j = rand() % BSIZE;
+	cell c = board.ij_to_cell(i, j);
+	return c;
 }
+
+//vector<cell> ship_project(cell head, Direction dir, int size)
+// a5, HORIS, 3 -> vector<cell> (a5, a6, a7)
+// b10, HORIS, 3 -> vector<cell> (b10, b11, b12) 
 
 void pause()
 {

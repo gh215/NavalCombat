@@ -1,5 +1,13 @@
 ﻿#include "naval.h"
 
+void draw(Board& h, Board& c, string msg)
+{
+	system("cls");
+	h.display_board();
+	c.display_board();
+	cout << msg << endl;
+}
+
 int main()
 {
 	setlocale(LC_ALL, "Russian");
@@ -9,54 +17,27 @@ int main()
 	AutoGamer autogamer_human(human_board);
 	AutoGamer autogamer_computer(computer_board);
 	srand(static_cast<unsigned int>(time(0)));
+	bool human_turn = true;
 
 	cell first_shoot_hint = cell('D', 6);
 
 	intro();
 	pause();
-	system("cls");
 
-	cout << "Выберите способ расстановки кораблей:" << endl;
-	cout << "1. Автоматическая расстановка" << endl;
-	cout << "2. Вручную" << endl;
+	autogamer_human.place_ships();
 
-	int choice;
-	cout << "Ваш выбор: ";
-	cin >> choice;
-
-	cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-
-	switch (choice) 
-	{
-	case 1:
-		autogamer_human.auto_place_ships_random();
-		break;
-	case 2:
-		if (!autogamer_human.manual_choose_ship_positions()) 
-		{
-			exit(0);
-		}
-		break;
-	default:
-		cout << "Неверный выбор, попробуйте снова." << endl;
-		return 1;
-	}
-	human_board.display_board();
 	autogamer_computer.auto_place_ships_random();
-	computer_board.display_board();
+	draw(human_board, computer_board, "");
 
-	bool human_turn = true;
 	while (!human_board.all_ships_killed() && !computer_board.all_ships_killed())
-	{
-		system("cls");
-		human_board.display_board();
-		computer_board.display_board();
+	{		
+		stringstream message;
 		if (human_turn)
 		{
 			cell target = autogamer_human.get_shot_coord();
 
 			char result = computer_board.shoot(target);
-			cout << "Выстрел по: " << target.first << target.second << " Результат: " << result << endl;
+			message << "Выстрел по: " << target.first << target.second << " Результат: " << result << endl;
 			if (result == MISSED)
 			{
 				human_turn = false;
@@ -64,7 +45,7 @@ int main()
 		}
 		else
 		{
-			cell target = autogamer_computer.generate_shoot();
+			cell target = autogamer_computer.generate_shoot(autogamer_human);
 
 			// temp code begin        
 			if (first_shoot_hint != INVALID_CELL)
@@ -77,7 +58,7 @@ int main()
 			char result = human_board.shoot(target);
 			autogamer_computer.delete_possible_shoots(target);
 			autogamer_computer.update_hunting_mode(result, target);
-			cout << "Компьютер выстрелил по: " << target.first << target.second << " Результат: " << result << endl;
+			message << "Компьютер выстрелил по: " << target.first << target.second << " Результат: " << result << endl;
 			if (result == MISSED)
 			{
 				human_turn = true;
@@ -87,13 +68,23 @@ int main()
 				autogamer_computer.update_impossible_shoots(target);
 				autogamer_computer.update_possible_shoots(target, autogamer_human);
 			}
-			pause();
+			if (result == KILLED)
+			{
+				autogamer_computer.invalidate_poss();
+			}
 		}
+		draw(human_board, computer_board, message.str());
+		//autogamer_computer.imp_poss_draw();
+		if (!human_turn) pause();
 	}
 
 	if (human_board.all_ships_killed())
 	{
 		cout << "Победил компьютер!" << endl;
 	}
-	cout << "Победил игрок!" << endl;
+	else
+	{
+		cout << "Победил игрок!" << endl;
+	}
+	
 }
