@@ -206,9 +206,9 @@ namespace UnitTests
 			cell c;
 			bool result1 = string_to_cell("A1", c);
 			bool result2 = string_to_cell("Z9", c);
-			bool result3 = string_to_cell("a1", c); 
-			bool result4 = string_to_cell("C10", c); 
-			bool result5 = string_to_cell("c11", c); 
+			bool result3 = string_to_cell("a1", c);
+			bool result4 = string_to_cell("C10", c);
+			bool result5 = string_to_cell("c11", c);
 
 			Assert::IsTrue(result1);
 			Assert::IsFalse(result2);
@@ -221,12 +221,12 @@ namespace UnitTests
 			vector<cell> validCells = { {'A', 1}, {'J', 10} };
 			vector<cell> invalidCells = { {'Z', 9}, {'_', 2}, {'a', 1}, {'a', 0}, {0, 'a'} };
 
-			for (auto cell : validCells) 
+			for (auto cell : validCells)
 			{
 				Assert::IsTrue(is_cell_valid(cell));
 			}
 
-			for (auto cell : invalidCells) 
+			for (auto cell : invalidCells)
 			{
 				Assert::IsFalse(is_cell_valid(cell));
 			}
@@ -246,13 +246,13 @@ namespace UnitTests
 		TEST_METHOD(TestCheckCoords)
 		{
 			Board board;
-			// Создаем и размещаем корабль на доске
-			vector<cell> initialShipCells = { {'B', 1}, {'B', 2}, {'B', 3} };
-			Ship initialShip(initialShipCells);
-			board.put_ship(initialShip);
+
+			vector<cell> ShipCells = { {'C', 1}, {'C', 2}, {'C', 3} };
+			Ship ship(ShipCells);
+			board.put_ship(ShipCells);
 
 			vector<cell> validCells = { {'A', 1}, {'A', 2}, {'A', 3} };
-			vector<cell> invalidCells = { {'A', 1}, {'A', 2}, {'A', 2} }; // Повторяющаяся клетка
+			vector<cell> invalidCells = { {'B', 1}, {'B', 2}, {'B', 3} }; 
 
 			// Проверка корректных координат
 			bool validResult = board.check_coords(validCells);
@@ -260,6 +260,84 @@ namespace UnitTests
 
 			// Проверка некорректных координат
 			bool invalidResult = board.check_coords(invalidCells);
+			Assert::IsFalse(invalidResult);
+		}
+		TEST_METHOD(TestAutoGamer_generate_shoot)
+		{
+			Board board;
+			AutoGamer autoGamer(board);
+			cell shoot = autoGamer.generate_shoot(autoGamer);
+			Assert::IsTrue(is_cell_valid(shoot));
+		}
+		TEST_METHOD(TestUtilities_get_random_cell)
+		{
+			cell randomCell = get_random_cell();
+			Assert::IsTrue(is_cell_valid(randomCell));
+		}
+		TEST_METHOD(TestUtilities_ship_project)
+		{
+			cell head = { 'A', 1 };
+			vector<cell> ship = ship_project(head, HORIS, 3);
+			vector<cell> expected = { {'A', 1}, {'B', 1}, {'C', 1} };
+			Assert::IsTrue(ship == expected);
+		}
+		TEST_METHOD(TestBoard_ij_to_cell)
+		{
+			Board board;
+
+			// Координата верхнего левого угла игрового поля
+			cell c = board.ij_to_cell(0, 0);
+			Assert::AreEqual('A', c.first);
+			Assert::AreEqual(1, c.second);
+
+			// Координата нижнего правого угла игрового поля
+			cell c1 = board.ij_to_cell(9, 9);
+			Assert::AreEqual('J', c1.first);
+			Assert::AreEqual(10, c1.second);
+
+			// Координата середины игрового поля
+			cell c2 = board.ij_to_cell(4, 4);
+			Assert::AreEqual('E', c2.first);
+			Assert::AreEqual(5, c2.second);
+
+			// Координата разных координатов игрового поля
+			cell c3 = board.ij_to_cell(0, 1);
+			Assert::AreEqual('B', c3.first);
+			Assert::AreEqual(1, c3.second);
+		}
+		TEST_METHOD(Test_invalidate_poss)
+		{
+			Board board;
+			AutoGamer ag(board);
+			ag.possible_shoots.insert(cell('A', 1));
+			ag.possible_shoots.insert(cell('B', 2));
+			ag.impossible_shoots.insert(cell('C', 3));
+
+			ag.invalidate_poss();
+
+			Assert::IsTrue(ag.impossible_shoots.count(cell('A', 1)) == 1);
+			Assert::IsTrue(ag.impossible_shoots.count(cell('B', 2)) == 1);
+			Assert::IsFalse(ag.possible_shoots.count(cell('A', 1)) == 1);
+			Assert::IsFalse(ag.possible_shoots.count(cell('B', 2)) == 1);
+		}
+		TEST_METHOD(Test_place_ships)
+		{
+			Board board;
+			AutoGamer ag(board);
+
+			// Redirecting standard input for testing purposes
+			std::istringstream input("1\n");
+			std::cin.rdbuf(input.rdbuf());
+
+			ag.place_ships();
+
+			Assert::IsTrue(board.all_ships_killed() == false);
+		}
+		TEST_METHOD(Test_get_random_cell)
+		{
+			cell c = get_random_cell();
+			Assert::IsTrue(c.first >= 'A' && c.first <= 'J');
+			Assert::IsTrue(c.second >= 1 && c.second <= 10);
 		}
 	};
 }
