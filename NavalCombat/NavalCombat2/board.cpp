@@ -58,10 +58,23 @@ char Board::shoot(cell target) //определение метода shoot кл�
 
 bool Board::check_coords(vector<cell>& cells)
 {
+	if (check_coords_2(cells))
+	{
+		return true;
+	}
+	return false;
+}
+
+bool Board::check_coords_2(vector<cell>& cells)
+{
 	// Проверяем, что координаты не пересекаются с уже размещенными кораблями
 	for (auto c : cells)
 	{
-		//добавить is_cell_valid
+		if (!is_cell_valid(c))
+		{
+			cout << "Клетка не расположена на доске." << endl;
+			return false;
+		}
 		if (cell_state(c) != EMPTY)
 		{
 			cout << "Координаты пересекаются с уже размещенным кораблем." << endl;

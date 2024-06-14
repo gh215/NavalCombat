@@ -22,6 +22,7 @@ const char UNKNOWN = '?';
 const char IMPOSS = '-';
 const char POSS = '+';
 enum Direction {HORIS, VERT};
+enum Status {OK, CROSS, NEAR};
 const int BSIZE = 10; // Определяется размер игрового поля (10x10 ячеек).
 
 //Определяется тип cell как пара символа (буква столбца) и целого числа (номер строки) для представления координат ячейки.
@@ -82,6 +83,7 @@ public:
 	void display_board();
 	char shoot_result(cell c);
 	bool check_coords(vector<cell>& cells);
+	bool check_coords_2(vector<cell>& cells);
 	bool all_ships_killed();
 	char shoot(cell target);
 };
@@ -112,6 +114,7 @@ public:
 	void place_ships();
 	void imp_poss_draw();
 	void invalidate_poss();
+	void generate_rs_for_user();
 };
 
 bool string_to_cell(string in, cell& c);
@@ -121,3 +124,4 @@ bool is_cell_valid(cell c);
 bool get_coords(vector<cell>& cells, int size);
 bool is_cells_near(cell c1, cell c2);
 cell get_random_cell();
+vector<cell> ship_project(cell head, Direction dir, int size);

@@ -11,15 +11,15 @@ cell AutoGamer::generate_shoot(AutoGamer& human_gamer)
 	set<cell> shot;
 
 	while (shot.size() != BSIZE * BSIZE)
-	{	
+	{
 		cell c = get_random_cell();
 		shot.insert(c);
 
 		if (impossible_shoots.count(c) == 1) continue;
 		// туда куда не стрелял и для какой клетки не выяснил невозможность
-		
+
 		if (human_gamer.prev_shoot_result(c) != UNKNOWN) continue;
-		return c;		
+		return c;
 	}
 }
 
@@ -201,7 +201,6 @@ void AutoGamer::delete_possible_shoots(cell c)
 
 bool AutoGamer::auto_place_ships_random()
 {
-	srand(static_cast<unsigned int>(time(0)));
 	vector<int> ships_sizes{ 4, 3, 3, 2, 2, 2, 1, 1, 1, 1 };
 
 	//цикл будет выполнятся, пока корабль не будет успешно размещен на поле и все корабли не будут размещены на поле
@@ -213,29 +212,19 @@ bool AutoGamer::auto_place_ships_random()
 		// когда корабль поставлен, break
 		while (!placed)
 		{
-			//сгенерировать направление, 
-			//сгенерировать head, 
-			//сгенерировать проект, 
-			// проверить в check_coords
-			//случайное направление корабля
-			bool horizontal = rand() % 2; // 0 - горизонтально, 1 - вертикально
-			//переделать код, так как непонятный
-			int row = horizontal ? rand() % BSIZE + 1 : rand() % (BSIZE - size + 1) + 1;
-			int col = horizontal ? rand() % (BSIZE - size + 1) + 'A' : rand() % BSIZE + 'A';
-			//пустой вектор для хранение ячеек корабля
-			vector<cell> cells;
+			Direction dir = VERT;
 
-			//цикл, заполняет вектор cells координатами ячеек корабля в зависимости от его напр. и размера
-			for (int i = 0; i < size; ++i)
+			bool horizontal = rand() % 2; // 0 - горизонтально, 1 - вертикально
+
+			if (horizontal)
 			{
-				if (horizontal)
-				{
-					cells.push_back(cell{ static_cast<char>(col + i), row });
-				}
-				else {
-					cells.push_back(cell{ col, row + i });
-				}
+				dir = HORIS;
 			}
+
+			cell head = get_random_cell();
+
+			//вектор для хранение ячеек корабля
+			vector<cell> cells = ship_project(head, dir, size);
 
 			// проверка на возможность размещения корабля в данных координатах
 			if (board.check_coords(cells))
@@ -245,7 +234,6 @@ bool AutoGamer::auto_place_ships_random()
 			}
 		}
 	}
-	//когда функция возвращает true
 	return true;
 }
 
@@ -253,7 +241,8 @@ void AutoGamer::place_ships()
 {
 	cout << "Выберите способ расстановки кораблей:" << endl;
 	cout << "1. Автоматическая расстановка" << endl;
-	cout << "2. Вручную" << endl;
+	cout << "2. Выбор из трёх автоматически сгенерированных полей" << endl;
+	cout << "3. Вручную" << endl;
 
 	int choice;
 	cout << "Ваш выбор: ";
@@ -267,6 +256,9 @@ void AutoGamer::place_ships()
 		auto_place_ships_random();
 		break;
 	case 2:
+		generate_rs_for_user();
+		break;
+	case 3:
 		if (!manual_choose_ship_positions())
 		{
 			exit(0);
@@ -281,7 +273,7 @@ void AutoGamer::place_ships()
 void AutoGamer::imp_poss_draw()
 {
 	for (int i = 0; i < BSIZE; i++)
-	{		
+	{
 		cout << "   ";
 		for (int j = 0; j < BSIZE; j++)
 		{
@@ -305,5 +297,40 @@ void AutoGamer::invalidate_poss()
 	for (cell c : impossible_shoots)
 	{
 		possible_shoots.erase(c);
+	}
+}
+
+void AutoGamer::generate_rs_for_user()
+{
+	while (true)
+	{
+		board = Board(true); // Создаем новую доску перед генерацией
+		auto_place_ships_random();
+		system("cls");
+		cout << "\nВарианты игровых полей: " << endl;
+		board.display_board();
+
+		int user_choice;
+		cout << "Вас устраивает этот вариант? Нажмите 1 для подтверждения, 2 для перезагрузки, 0 для выхода из игры: ";
+		cin >> user_choice;
+
+		if (user_choice == 0)
+		{
+			cout << "Выход из игры." << endl;
+			exit(0);
+		}
+		else if (user_choice == 1)
+		{
+
+			break;
+		}
+		else if (user_choice == 2)
+		{
+			continue;
+		}
+		else
+		{
+			cout << "Извините, но это неправильная клавиша." << endl;
+		}
 	}
 }

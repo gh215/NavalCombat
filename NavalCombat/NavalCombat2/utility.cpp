@@ -82,9 +82,28 @@ cell get_random_cell()
 	return c;
 }
 
-//vector<cell> ship_project(cell head, Direction dir, int size)
-// a5, HORIS, 3 -> vector<cell> (a5, a6, a7)
-// b10, HORIS, 3 -> vector<cell> (b10, b11, b12) 
+vector<cell> ship_project(cell head, Direction dir, int size)
+{
+	vector<cell> ship_pos;
+	if (dir == HORIS)
+	{
+		for (int i = 0; i < size; i++)
+		{
+			ship_pos.push_back(head);
+			head.first += 1;
+		}
+	}
+	if (dir == VERT)
+	{
+		for (int i = 0; i < size; i++)
+		{
+			ship_pos.push_back(head);
+			head.second += 1;
+		}
+	}
+
+	return ship_pos;
+}
 
 void pause()
 {

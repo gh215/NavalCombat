@@ -11,15 +11,12 @@ void draw(Board& h, Board& c, string msg)
 int main()
 {
 	setlocale(LC_ALL, "Russian");
-
+	srand(static_cast<unsigned int>(time(nullptr)));
 	Board human_board;
 	Board computer_board(false);
 	AutoGamer autogamer_human(human_board);
 	AutoGamer autogamer_computer(computer_board);
-	srand(static_cast<unsigned int>(time(0)));
 	bool human_turn = true;
-
-	cell first_shoot_hint = cell('D', 6);
 
 	intro();
 	pause();
@@ -46,15 +43,6 @@ int main()
 		else
 		{
 			cell target = autogamer_computer.generate_shoot(autogamer_human);
-
-			// temp code begin        
-			if (first_shoot_hint != INVALID_CELL)
-			{
-				target = first_shoot_hint;
-				first_shoot_hint = INVALID_CELL;
-			}
-			// temp code end
-
 			char result = human_board.shoot(target);
 			autogamer_computer.delete_possible_shoots(target);
 			autogamer_computer.update_hunting_mode(result, target);
